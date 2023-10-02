@@ -3,6 +3,11 @@ import numpy as np
 Credits: the original code belongs to Stanford CS231n course assignment1. Source link: http://cs231n.github.io/assignments2019/assignment1/
 """
 
+def get_L2_dist(x, y):
+    np_x = np.array(x)
+    np_y = np.array(y)
+    return np.sqrt(np.sum(np.power(np_x - np_y, 2), axis=len(np_x.shape) - 1))
+
 class KNearestNeighbor:
     """ a kNN classifier with L2 distance """
 
@@ -75,7 +80,7 @@ class KNearestNeighbor:
                 # not use a loop over dimension, nor use np.linalg.norm().          #
                 #####################################################################
                 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+                dists[i][j] = get_L2_dist(X[i], self.X_train[j])
                 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return dists
 
@@ -97,7 +102,7 @@ class KNearestNeighbor:
             # Do not use np.linalg.norm().                                        #
             #######################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+            dists[i] = get_L2_dist([X[i]], self.X_train)
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return dists
 
@@ -125,6 +130,11 @@ class KNearestNeighbor:
         #       and two broadcast sums.                                         #
         #########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        # (num_test, num_train)
+        test_pow_2 = np.swapaxes(np.full((num_train, num_test), np.sum(X * X, axis=1)), 0, 1)
+        train_pow_2 = np.full((num_test, num_train), np.sum(self.X_train * self.X_train, axis=1))
+        test_mul_train = np.matmul(X, self.X_train.transpose())
+        dists = np.sqrt(test_pow_2 + train_pow_2 - 2 * test_mul_train)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return dists
@@ -155,7 +165,7 @@ class KNearestNeighbor:
             # Hint: Look up the function numpy.argsort.                             #
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+            dist_argsorted = np.argsort(dists[i])
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
             #########################################################################
             # TODO:                                                                 #
@@ -165,7 +175,11 @@ class KNearestNeighbor:
             # label.                                                                #
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+            neighbors = [self.y_train[dist_argsorted[j]] for j in range(k)]
+            y_pred[i] = np.bincount(neighbors).argmax()
+            # num_similar = [(me, neighbors.count(me)) for me in neighbors]
+            # name = sorted(num_similar, key=itemgetter(1), reverse=True)[0][0]
+            # y_pred[i] = name
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
